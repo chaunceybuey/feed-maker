@@ -15,8 +15,6 @@
     "link_sel": "span.titleline > a"
   },
   {
-    "name": "Example with just a container selector",
-    "url": "https://example-blog.com",
-    "selector": "article.post-card"
-  }
+    "name": "New Yorker",
+    "url": "https://www.newyorker.com/magazine"
 ]
