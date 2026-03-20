@@ -1,0 +1,22 @@
+[
+  {
+    "name": "The Atlantic",
+    "url": "https://www.theatlantic.com/latest/"
+  },
+  {
+    "name": "Kottke",
+    "url": "https://kottke.org"
+  },
+  {
+    "name": "Hacker News",
+    "url": "https://news.ycombinator.com",
+    "selector": "tr.athing",
+    "title_sel": "span.titleline > a",
+    "link_sel": "span.titleline > a"
+  },
+  {
+    "name": "Example with just a container selector",
+    "url": "https://example-blog.com",
+    "selector": "article.post-card"
+  }
+]
