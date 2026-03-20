@@ -17,5 +17,9 @@
   {
     "name": "New Yorker",
     "url": "https://www.newyorker.com/magazine"
+  },
+  {
+    "name": "Slow Boring",
+    "url"; "https://www.slowboring.com/archive"
   }
 ]
