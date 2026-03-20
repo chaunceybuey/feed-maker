@@ -33,7 +33,7 @@ HEADERS = {
 # ── Fetch ─────────────────────────────────────────────────────────────────────
 
 def fetch(url: str) -> BeautifulSoup:
-    """Fetch a URL and return a BeautifulSoup object."""
+     """Fetch a URL and return a BeautifulSoup object."""
     origin = "{0.scheme}://{0.netloc}".format(urlparse(url))
     hdrs = {**HEADERS, "Referer": origin}
     # Pass raw bytes to BS4 so it reads <meta charset> directly — no encoding guessing
@@ -87,7 +87,7 @@ def auto_detect(soup: BeautifulSoup, base_url: str) -> list[dict]:
 
 
 def extract_item(el, base_url: str) -> dict:
-    """Pull title, link, description, and date out of a single element."""
+    """Pull title, link, description, author, and date out of a single element."""
     # Title: prefer heading tags, fall back to any link text
     title = ""
     heading = el.find(re.compile(r"^h[1-6]$"))
@@ -106,22 +106,55 @@ def extract_item(el, base_url: str) -> dict:
         a = el.find("a", href=True)
     if a:
         link = urljoin(base_url, a["href"])
-        # Skip anchors, javascript:, mailto:
         if not link.startswith("http"):
             link = ""
 
-    # Description: first <p> that isn't inside the heading
+    # Description: first <p> that isn't just the title, prefer longer text
     desc = ""
     for p in el.find_all("p"):
         text = p.get_text(strip=True)
-        if text and text != title and len(text) > 20:
+        if text and text != title and len(text) > 30:
             desc = text
             break
+    # Fall back: look for elements with description-like class names
+    if not desc:
+        for sel in ["[class*='desc']", "[class*='summary']", "[class*='excerpt']",
+                    "[class*='dek']", "[class*='standfirst']", "[class*='teaser']",
+                    "[class*='subtitle']", "[class*='intro']"]:
+            node = el.select_one(sel)
+            if node:
+                text = node.get_text(strip=True)
+                if text and text != title and len(text) > 20:
+                    desc = text
+                    break
 
-    # Date: look for <time datetime="..."> or common date class patterns
+    # Author
+    author = find_author(el)
+
+    # Date
     date = find_date(el)
 
-    return {"title": title, "link": link, "desc": desc, "date": date}
+    return {"title": title, "link": link, "desc": desc, "author": author, "date": date}
+
+
+def find_author(el) -> str:
+    """Look for author/byline info inside an article container."""
+    # Common class/attribute patterns for author bylines
+    for sel in [
+        "[class*='author']", "[class*='byline']", "[class*='by-line']",
+        "[rel='author']", "[itemprop='author']",
+        "[class*='writer']", "[class*='contributor']", "[class*='reporter']",
+    ]:
+        node = el.select_one(sel)
+        if not node:
+            continue
+        text = node.get_text(strip=True)
+        # Strip common prefixes like "By John Smith" → "John Smith"
+        text = re.sub(r"^(?:by|from|written by|reported by)\s+", "", text, flags=re.IGNORECASE).strip()
+        # Sanity check: author names shouldn't be very long or contain newlines
+        if text and len(text) < 80 and "\n" not in text:
+            return text
+    return ""
 
 
 def find_date(el) -> str:
@@ -165,6 +198,10 @@ def manual_extract(soup: BeautifulSoup, base_url: str, config: dict) -> list[dic
                 href = l.get("href", "") or (l.find("a") or {}).get("href", "")
                 if href:
                     item["link"] = urljoin(base_url, href)
+        if config.get("author_sel"):
+            a = el.select_one(config["author_sel"])
+            if a:
+                item["author"] = a.get_text(strip=True)
         items.append(item)
     return items
 
@@ -208,6 +245,8 @@ def build_rss(name: str, url: str, items: list[dict]) -> str:
         ]
         if item["desc"]:
             lines.append(f"    <description>{xml_escape(item['desc'])}</description>")
+        if item.get("author"):
+            lines.append(f"    <dc:creator>{xml_escape(item['author'])}</dc:creator>")
         lines.append("  </item>")
         count += 1
 
