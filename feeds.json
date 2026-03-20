@@ -8,23 +8,12 @@
     "url": "https://www.compactmag.com/"
   },
   {
-    "name": "Hacker News",
-    "url": "https://news.ycombinator.com",
-    "selector": "tr.athing",
-    "title_sel": "span.titleline > a",
-    "link_sel": "span.titleline > a"
-  },
-  {
     "name": "New Yorker",
     "url": "https://www.newyorker.com/magazine"
   },
   {
     "name": "Slow Boring",
     "url": "https://www.slowboring.com/archive"
-  },
-  {
-    "name": "Interesting Times",
-    "url": "https://www.nytimes.com/column/interesting-times"
   },
   {
     "name": "Outside",
