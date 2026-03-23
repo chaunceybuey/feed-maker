@@ -87,10 +87,15 @@ def auto_detect(soup: BeautifulSoup, base_url: str) -> list[dict]:
 
 
 def extract_item(el, base_url: str) -> dict:
-    """Pull title, link, description, author, and date out of a single element."""
-    # Title: prefer heading tags, fall back to any link text
+    """Pull title, link, description, author, and date out of a single element with strict boundaries."""
+    
+    # 1. THE TITLE FIX: Prioritize <h2> and <h3> tags over smaller rubric headings
     title = ""
-    heading = el.find(re.compile(r"^h[1-6]$"))
+    heading = el.find(["h2", "h3"])
+    if not heading:
+        # Fallback to smaller headings only if no main headline exists
+        heading = el.find(re.compile(r"^h[1-6]$"))
+
     if heading:
         title = heading.get_text(strip=True)
     if not title:
@@ -98,25 +103,30 @@ def extract_item(el, base_url: str) -> dict:
         if a:
             title = a.get_text(strip=True)
 
-    # Link: find the <a> nearest to the heading, or the first substantial one
+    # 2. THE LINK FIX: Trap the search strictly inside this specific article container
     link = ""
-    if heading:
-        a = heading.find("a", href=True) or heading.find_next("a", href=True)
+    # First, check if the headline itself contains the link
+    if heading and heading.find("a", href=True):
+        a = heading.find("a", href=True)
     else:
+        # If not, grab the very first link in the container (usually the thumbnail image)
+        # By using el.find instead of find_next, it cannot escape the box!
         a = el.find("a", href=True)
+        
     if a:
         link = urljoin(base_url, a["href"])
         if not link.startswith("http"):
             link = ""
 
-    # Description: first <p> that isn't just the title, prefer longer text
+    # Description: first <p> that isn't just the title
     desc = ""
     for p in el.find_all("p"):
         text = p.get_text(strip=True)
         if text and text != title and len(text) > 30:
             desc = text
             break
-    # Fall back: look for elements with description-like class names
+            
+    # Fall back: look for description-like class names
     if not desc:
         for sel in ["[class*='desc']", "[class*='summary']", "[class*='excerpt']",
                     "[class*='dek']", "[class*='standfirst']", "[class*='teaser']",
@@ -135,7 +145,7 @@ def extract_item(el, base_url: str) -> dict:
     date = find_date(el)
 
     return {"title": title, "link": link, "desc": desc, "author": author, "date": date}
-
+    
 
 def find_author(el) -> str:
     """Look for author/byline info inside an article container."""
