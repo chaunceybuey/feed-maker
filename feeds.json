@@ -1,7 +1,7 @@
 [
   {
     "name": "The Atlantic",
-    "url": "https://www.theatlantic.com/latest/"
+    "url": "https://www.theatlantic.com/ideas/"
   },
   {
     "name": "Compact",
@@ -11,11 +11,7 @@
     "name": "New Yorker",
     "url": "https://www.newyorker.com/magazine"
   },
-  {
-    "name": "Slow Boring",
-    "url": "https://www.slowboring.com/archive"
-  },
-  {
+    {
     "name": "Outside",
     "url": "https://www.outsideonline.com/tag/outside-features/"
   },
