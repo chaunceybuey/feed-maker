@@ -23,4 +23,8 @@
     "name": "LRB",
     "url": "https://www.lrb.co.uk/the-paper/"
   }
+  {
+    "name": "Texas Tribune",
+    "url": "https://feeds.texastribune.org/feeds/main/"
+  }
 ]
